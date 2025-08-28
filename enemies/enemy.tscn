@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://j11iawt6j431"]
+[gd_scene load_steps=6 format=3 uid="uid://j11iawt6j431"]
 
 [ext_resource type="Script" uid="uid://b1q5wl722fxc4" path="res://Scripts/enemy.gd" id="1_7frlh"]
 [ext_resource type="Script" uid="uid://ddfp6rb83jlu" path="res://classes/StateMechine.gd" id="1_fw1ev"]
 [ext_resource type="Script" uid="uid://kfeexau87tld" path="res://classes/Hitbox.gd" id="2_orwns"]
 [ext_resource type="Script" uid="uid://cf6q74sf300oo" path="res://classes/Hurtbox.gd" id="3_a6vjd"]
+[ext_resource type="Script" uid="uid://5e45t2uej1j4" path="res://classes/Stats.gd" id="5_07tka"]
 
 [node name="Enemy" type="CharacterBody2D"]
 collision_layer = 4
@@ -32,3 +33,7 @@ metadata/_custom_type_script = "uid://cf6q74sf300oo"
 [node name="StateMachine" type="Node" parent="."]
 script = ExtResource("1_fw1ev")
 metadata/_custom_type_script = "uid://ddfp6rb83jlu"
+
+[node name="Stats" type="Node" parent="."]
+script = ExtResource("5_07tka")
+metadata/_custom_type_script = "uid://5e45t2uej1j4"
