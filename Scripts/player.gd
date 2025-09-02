@@ -49,6 +49,7 @@ var pending_damage : Damage      # 待处理的伤害
 @onready var foot_checker: RayCast2D = $Graphics/FootChecker
 @onready var state_machine: StateMachine = $StateMachine
 @onready var stats: Stats = $Stats
+@onready var invincible_timer: Timer = $InvincibleTimer
 
 # 输入处理
 func _unhandled_input(event: InputEvent) -> void:
@@ -68,6 +69,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		
 # 物理处理 - 根据状态执行不同的物理行为
 func tick_physics(state: State,delta: float) -> void:
+	if invincible_timer.time_left >0 :
+		graphics.modulate.a = sin(Time.get_ticks_msec() / 20 )*0.5 +0.5
+	else:
+		graphics.modulate.a = 1
+	
 	match  state:
 		State.IDLE:
 			move(default_gravity,delta)  # 闲置状态下可以移动
@@ -137,6 +143,9 @@ func stand(gravity:float, delta:float) ->void:
 	velocity.y +=gravity * delta
 	# 执行移动
 	move_and_slide()
+
+func die() -> void:
+	get_tree().reload_current_scene()
 
 # 获取下一个状态 - 状态机核心逻辑
 func get_next_state(state: State) -> int:
@@ -282,15 +291,20 @@ func transition_state(from: State, to: State) -> void:
 			var dir := pending_damage.source.global_position.direction_to(global_position)
 			velocity = dir * KNOCKBACK_AMOUNT  # 应用击退
 			pending_damage = null  # 清空待处理伤害
+			invincible_timer.start()
 			
 		State.DYING:
 			animation_player.play("die")
+			invincible_timer.stop()
 	
 	# 标记下一帧是状态的第一帧
 	is_first_tick = true
 	
 # 受伤处理
 func _on_hurtbox_hurt(hitbox: Hitbox) -> void:
+	if invincible_timer.time_left > 0:
+		return
+	
 	# 创建伤害对象
 	pending_damage = Damage.new()
 	pending_damage.amount = 1

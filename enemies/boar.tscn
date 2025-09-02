@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://don7qxahql5br"]
+[gd_scene load_steps=20 format=3 uid="uid://don7qxahql5br"]
 
 [ext_resource type="PackedScene" uid="uid://j11iawt6j431" path="res://enemies/enemy.tscn" id="1_7qeyt"]
 [ext_resource type="Texture2D" uid="uid://ccspu202jlans" path="res://Legacy-Fantasy - High Forest 2.3/Mob/Boar/Idle/Idle-Sheet.png" id="2_ctdmm"]
@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://ch4hs6d3n8lb4" path="res://Legacy-Fantasy - High Forest 2.3/Mob/Boar/Hit-Vanish/Hit-Sheet.png" id="3_lnvry"]
 [ext_resource type="Texture2D" uid="uid://dij4snc7copky" path="res://Legacy-Fantasy - High Forest 2.3/Mob/Boar/Walk/Walk-Base-Sheet.png" id="4_gvyro"]
 [ext_resource type="Texture2D" uid="uid://5cfmlv2uab6a" path="res://Legacy-Fantasy - High Forest 2.3/Mob/Boar/Run/Run-Sheet.png" id="5_imo2m"]
+[ext_resource type="PackedScene" uid="uid://chhlyultca0vj" path="res://ui/status_panel.tscn" id="7_qb4tn"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_iippf"]
 size = Vector2(24, 22)
@@ -619,5 +620,12 @@ one_shot = true
 
 [node name="Stats" parent="." index="5"]
 max_health = 5
+
+[node name="StatusPanel" parent="." index="6" node_paths=PackedStringArray("stats") instance=ExtResource("7_qb4tn")]
+offset_left = -61.0
+offset_top = -45.0
+offset_right = 27.0
+offset_bottom = -19.0
+stats = NodePath("../Stats")
 
 [connection signal="hurt" from="Graphics/Hurtbox" to="." method="_on_hurtbox_hurt"]
