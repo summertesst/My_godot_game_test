@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://chhlyultca0vj"]
+[gd_scene load_steps=12 format=3 uid="uid://chhlyultca0vj"]
 
 [ext_resource type="Script" uid="uid://c777b244wkkj3" path="res://ui/status_panel.gd" id="1_0jk47"]
 [ext_resource type="Texture2D" uid="uid://cxxbc65i7qqib" path="res://Legacy-Fantasy - High Forest 2.3/HUD/Base-01.png" id="2_7nptj"]
@@ -32,6 +32,14 @@ region = Rect2(308, 118, 56, 4)
 atlas = SubResource("CompressedTexture2D_0jk47")
 region = Rect2(308, 86, 56, 4)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_0jk47"]
+atlas = ExtResource("2_7nptj")
+region = Rect2(307, 6, 58, 4)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uqk2t"]
+atlas = ExtResource("2_7nptj")
+region = Rect2(308, 135, 56, 2)
+
 [node name="StatusPanel" type="HBoxContainer"]
 script = ExtResource("1_0jk47")
 
@@ -45,7 +53,12 @@ layout_mode = 2
 texture = SubResource("AtlasTexture_q1n06")
 stretch_mode = 5
 
-[node name="HealthBar" type="TextureProgressBar" parent="."]
+[node name="V" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="HealthBar" type="TextureProgressBar" parent="V"]
 layout_mode = 2
 size_flags_vertical = 4
 max_value = 1.0
@@ -55,7 +68,7 @@ texture_over = SubResource("AtlasTexture_kl8nt")
 texture_progress = SubResource("AtlasTexture_21v3x")
 texture_progress_offset = Vector2(1, 1)
 
-[node name="EasedHealthBar" type="TextureProgressBar" parent="HealthBar"]
+[node name="EasedHealthBar" type="TextureProgressBar" parent="V/HealthBar"]
 show_behind_parent = true
 layout_mode = 1
 anchors_preset = 15
@@ -68,4 +81,13 @@ max_value = 1.0
 step = 0.0
 value = 1.0
 texture_progress = SubResource("AtlasTexture_7nptj")
+texture_progress_offset = Vector2(1, 1)
+
+[node name="EnergyBar" type="TextureProgressBar" parent="V"]
+layout_mode = 2
+max_value = 1.0
+step = 0.0
+value = 1.0
+texture_over = SubResource("AtlasTexture_0jk47")
+texture_progress = SubResource("AtlasTexture_uqk2t")
 texture_progress_offset = Vector2(1, 1)
