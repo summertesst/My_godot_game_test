@@ -15,6 +15,9 @@ enum State{
 	ATTACK_3,       # 攻击3状态
 	HURT,           # 受伤状态
 	DYING,          # 死亡状态
+	SLIDING_START,
+	SLIDING_LOOP,
+	SLIDING_END,
 }
 
 # 地面状态列表（这些状态下玩家被视为在地面上）
@@ -30,6 +33,10 @@ const AIR_ACCELARATION:= RUN_SPEED /0.1        # 空中加速度
 const JUMP_VELOCITY := -320.0                  # 跳跃速度（负值表示向上）
 const WALL_JUMP_VELOCITY := Vector2(450, -280) # 墙面跳跃速度
 const KNOCKBACK_AMOUNT := 512.0                # 击退力度
+const SLDING_DURATION := 0.3
+const SLIDING_SPEED := 256.0
+const SLIDING_ENERGY := 4.0
+const LANDING_HIGHT := 100.0
 
 # 导出变量
 @export var can_combo : = false  # 是否可以连击
@@ -39,6 +46,7 @@ var default_gravity :=ProjectSettings.get("physics/2d/default_gravity") as float
 var is_first_tick := false       # 是否是状态的第一帧
 var is_combo_requested := false  # 是否请求了连击
 var pending_damage : Damage      # 待处理的伤害
+var fall_from_y :float 
 
 # 节点引用
 @onready var graphics: Node2D = $Graphics
@@ -50,6 +58,8 @@ var pending_damage : Damage      # 待处理的伤害
 @onready var state_machine: StateMachine = $StateMachine
 @onready var stats: Stats = $Stats
 @onready var invincible_timer: Timer = $InvincibleTimer
+@onready var slide_request_timer: Timer = $SlideRequestTImer
+
 
 # 输入处理
 func _unhandled_input(event: InputEvent) -> void:
@@ -67,6 +77,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("attack") and can_combo:
 		is_combo_requested = true
 		
+	if event.is_action_pressed("slide"):
+		slide_request_timer.start()
 # 物理处理 - 根据状态执行不同的物理行为
 func tick_physics(state: State,delta: float) -> void:
 	if invincible_timer.time_left >0 :
@@ -110,6 +122,12 @@ func tick_physics(state: State,delta: float) -> void:
 		State.HURT, State.DYING:
 			stand(default_gravity, delta)  # 受伤和死亡状态下站立
 			
+		State.SLIDING_END:
+			stand(default_gravity, delta)
+			
+		State.SLIDING_LOOP, State.SLIDING_START:
+			slide(delta)
+			
 	is_first_tick = false  # 标记第一帧结束
 
 # 移动函数
@@ -129,9 +147,23 @@ func move(gravity: float, delta: float) ->void:
 	# 执行移动
 	move_and_slide()
 
+func slide(delta: float) ->void:
+	velocity.x = graphics.scale.x * SLIDING_SPEED
+	velocity.y +=  default_gravity * delta
+	
+	move_and_slide()
+
 # 检查是否可以墙面滑行
 func can_wall_slide() -> bool:
 	return is_on_wall() and hand_checker.is_colliding() and foot_checker.is_colliding()
+
+func should_slide() -> bool:
+	if slide_request_timer.is_stopped():
+		return false
+	if stats.energy < SLIDING_ENERGY:
+		return false
+	
+	return not foot_checker.is_colliding()
 
 # 站立函数（不移动但应用重力）
 func stand(gravity:float, delta:float) ->void:
@@ -176,12 +208,16 @@ func get_next_state(state: State) -> int:
 		State.IDLE:
 			if Input.is_action_just_pressed("attack"):
 				return State.ATTACK_1
+			if should_slide():
+				return State.SLIDING_START
 			if not is_still:
 				return State.RUNNING
 		
 		State.RUNNING:
 			if Input.is_action_just_pressed("attack"):
 				return State.ATTACK_1
+			if should_slide():
+				return State.SLIDING_START
 			if is_still:
 				return State.IDLE
 		
@@ -191,7 +227,8 @@ func get_next_state(state: State) -> int:
 		
 		State.FALL:
 			if is_on_floor():  # 落地时转换为着陆或奔跑状态
-				return State.LANDING if is_still else State.RUNNING
+				var height := global_position.y - fall_from_y
+				return State.LANDING if height >= LANDING_HIGHT else State.RUNNING
 			if can_wall_slide():  # 可以墙面滑行时转换
 				return State.WALL_SLIDING
 		
@@ -228,7 +265,19 @@ func get_next_state(state: State) -> int:
 		State.HURT:
 			if not animation_player.is_playing():  # 动画结束后转换为闲置
 				return State.IDLE
-
+	
+		State.SLIDING_START:
+			if not animation_player.is_playing():  
+				return State.SLIDING_LOOP
+					
+				
+		State.SLIDING_END:
+			if not animation_player.is_playing():  
+				return State.IDLE
+		
+		State.SLIDING_LOOP:
+			if state_machine.state_time > SLDING_DURATION or is_on_wall():
+				return State.SLIDING_END
 	# 默认保持当前状态
 	return StateMachine.KEEP_CURRENT
 	
@@ -260,6 +309,7 @@ func transition_state(from: State, to: State) -> void:
 			animation_player.play("fall")
 			if from in GROUND_STATES:   # 从地面状态转换时启动土狼计时器
 				coyote_timer.start()
+			fall_from_y = global_position.y
 		
 		State.LANDING:
 			if from != State.LANDING:   # 避免重复播放动画
@@ -297,6 +347,17 @@ func transition_state(from: State, to: State) -> void:
 			animation_player.play("die")
 			invincible_timer.stop()
 	
+		State.SLIDING_START:
+			animation_player.play("sliding_start")
+			slide_request_timer.stop()
+			stats.energy -= SLIDING_ENERGY
+			
+		State.SLIDING_LOOP:
+			animation_player.play("sliding_loop")
+			
+		State.SLIDING_END:
+			animation_player.play("sliding_end")
+			
 	# 标记下一帧是状态的第一帧
 	is_first_tick = true
 	
