@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://cntubdinawn72"]
+[gd_scene load_steps=12 format=3 uid="uid://cntubdinawn72"]
 
 [ext_resource type="Script" uid="uid://xuooil7hb11r" path="res://Scripts/world.gd" id="1_5a7ea"]
 [ext_resource type="Texture2D" uid="uid://b6rtlrvaalelm" path="res://Legacy-Fantasy - High Forest 2.3/Assets/Tree-Assets.png" id="1_a02cp"]
@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://xkjbf16le3q1" path="res://Legacy-Fantasy - High Forest 2.3/Background/Background.png" id="4_8j60k"]
 [ext_resource type="Texture2D" uid="uid://bdf1pne8pfydh" path="res://Legacy-Fantasy - High Forest 2.3/Trees/Background.png" id="5_fo5ed"]
 [ext_resource type="PackedScene" uid="uid://don7qxahql5br" path="res://enemies/boar.tscn" id="6_5ukr8"]
+[ext_resource type="Script" uid="uid://dl187hf6jd7ce" path="res://classes/Interactable.gd" id="7_o06y3"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_go701"]
 texture = ExtResource("1_a02cp")
@@ -343,6 +344,12 @@ terrain_set_0/terrain_1/name = "background"
 terrain_set_0/terrain_1/color = Color(0.5, 0.4375, 0.25, 1)
 sources/1 = SubResource("TileSetAtlasSource_go701")
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_k7acu"]
+size = Vector2(13, 18)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_o06y3"]
+size = Vector2(16, 18)
+
 [node name="World" type="Node2D"]
 position = Vector2(0, -8)
 script = ExtResource("1_5a7ea")
@@ -581,3 +588,21 @@ region_rect = Rect2(210, 101, 124, 86)
 
 [node name="Boar" parent="." instance=ExtResource("6_5ukr8")]
 position = Vector2(202, 154)
+
+[node name="Mushrrom" type="Area2D" parent="."]
+position = Vector2(423, 146)
+script = ExtResource("7_o06y3")
+metadata/_custom_type_script = "uid://dl187hf6jd7ce"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Mushrrom"]
+position = Vector2(0.5, 6)
+shape = SubResource("RectangleShape2D_k7acu")
+
+[node name="Vegetable" type="Area2D" parent="."]
+position = Vector2(423, 146)
+script = ExtResource("7_o06y3")
+metadata/_custom_type_script = "uid://dl187hf6jd7ce"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Vegetable"]
+position = Vector2(-15, 6)
+shape = SubResource("RectangleShape2D_o06y3")

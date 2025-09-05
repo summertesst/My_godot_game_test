@@ -89,12 +89,12 @@ func get_next_state(state: State) -> int:
 # 状态转换处理
 func transition_state(from: State, to: State) -> void:
 	# 打印状态转换信息（用于调试）
-	print("[%s] %s => %s" % [
-		Engine.get_physics_frames(),
-		State.keys()[from] if from != -1 else "<START>",
-		State.keys()[to],
-	])
-	
+	#print("[%s] %s => %s" % [
+		#Engine.get_physics_frames(),
+		#State.keys()[from] if from != -1 else "<START>",
+		#State.keys()[to],
+	#])
+	#
 	# 状态特定初始化逻辑
 	match to:
 		State.IDLE:

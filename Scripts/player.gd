@@ -47,6 +47,7 @@ var is_first_tick := false       # 是否是状态的第一帧
 var is_combo_requested := false  # 是否请求了连击
 var pending_damage : Damage      # 待处理的伤害
 var fall_from_y :float 
+var interacting_with : Array[Interactable]
 
 # 节点引用
 @onready var graphics: Node2D = $Graphics
@@ -59,6 +60,7 @@ var fall_from_y :float
 @onready var stats: Stats = $Stats
 @onready var invincible_timer: Timer = $InvincibleTimer
 @onready var slide_request_timer: Timer = $SlideRequestTImer
+@onready var interaction_icon: AnimatedSprite2D = $InteractionIcon
 
 
 # 输入处理
@@ -79,8 +81,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		
 	if event.is_action_pressed("slide"):
 		slide_request_timer.start()
+		
+	if event.is_action_pressed("interact") and interacting_with:
+		interacting_with.back().interact()
+	
 # 物理处理 - 根据状态执行不同的物理行为
 func tick_physics(state: State,delta: float) -> void:
+	interaction_icon.visible = not interacting_with.is_empty()
+	
 	if invincible_timer.time_left >0 :
 		graphics.modulate.a = sin(Time.get_ticks_msec() / 20 )*0.5 +0.5
 	else:
@@ -178,6 +186,16 @@ func stand(gravity:float, delta:float) ->void:
 
 func die() -> void:
 	get_tree().reload_current_scene()
+
+func register_interactable(v:Interactable ) -> void:
+	if state_machine.current_state == State.DYING:
+		return
+	if v in interacting_with:
+		return
+	interacting_with.append(v)
+
+func unregister_interactable(v : Interactable) ->void:
+	interacting_with.erase(v)
 
 # 获取下一个状态 - 状态机核心逻辑
 func get_next_state(state: State) -> int:
@@ -284,12 +302,12 @@ func get_next_state(state: State) -> int:
 # 状态转换处理
 func transition_state(from: State, to: State) -> void:
 	# 打印状态转换信息（用于调试）
-	print("[%s] %s => %s" % [
-		Engine.get_physics_frames(),
-		State.keys()[from] if from != -1 else "<START>",
-		State.keys()[to],
-	])
-	
+	#print("[%s] %s => %s" % [
+		#Engine.get_physics_frames(),
+		#State.keys()[from] if from != -1 else "<START>",
+		#State.keys()[to],
+	#])
+	#
 	# 从非地面状态转换到地面状态时停止土狼计时器
 	if from not in GROUND_STATES and to in GROUND_STATES:
 		coyote_timer.stop()
@@ -346,6 +364,7 @@ func transition_state(from: State, to: State) -> void:
 		State.DYING:
 			animation_player.play("die")
 			invincible_timer.stop()
+			interacting_with.clear()
 	
 		State.SLIDING_START:
 			animation_player.play("sliding_start")
