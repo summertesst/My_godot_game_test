@@ -13,7 +13,7 @@ func _init() -> void:
 # 区域进入处理函数
 func _on_area_entered(hurtbox: Hurtbox) -> void:
 	# 打印命中信息 [攻击者] => [被攻击者]
-	print("[Hit] %s => %s" % [owner.name, hurtbox.owner.name])
+	#print("[Hit] %s => %s" % [owner.name, hurtbox.owner.name])
 	
 	# 发出 hit 信号，传递被命中的 hurtbox
 	hit.emit(hurtbox)
